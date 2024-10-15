@@ -8,12 +8,13 @@ import {
 import { getFirestore } from 'firebase/firestore'; // Firestore import
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA31h_KyFq8MbwzJt5NKZWZMTkFcqrI6nQ",
+  authDomain: "dermaviosion-ai.firebaseapp.com",
+  projectId: "dermaviosion-ai",
+  storageBucket: "dermaviosion-ai.appspot.com",
+  messagingSenderId: "537710907865",
+  appId: "1:537710907865:android:a3fb336ef1826ecdd789c8",
+  measurementId: "G-XXXXXXX"
 };
 
 const app = initializeApp(firebaseConfig);

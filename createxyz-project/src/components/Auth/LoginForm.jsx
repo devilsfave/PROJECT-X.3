@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../../firebase/config';
+import { auth, signInWithFacebookCredential } from '../../firebase/config';
 import ButtonStyling from '../ButtonStyling';
+import FacebookLogin from 'react-facebook-login';
 
 function LoginForm({ setUser }) {
   const [email, setEmail] = useState('');
@@ -43,7 +44,6 @@ function LoginForm({ setUser }) {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
-  // Password Reset Handler
   const handlePasswordReset = async () => {
     if (!email) {
       setError('Please enter your email to reset the password.');
@@ -52,9 +52,26 @@ function LoginForm({ setUser }) {
     try {
       await sendPasswordResetEmail(auth, email);
       alert('Password reset email sent!');
-      setError(null); // Clear any existing errors
+      setError(null);
     } catch (err) {
       setError('Failed to send password reset email.');
+    }
+  };
+
+  const responseFacebook = async (response) => {
+    if (response.accessToken) {
+      try {
+        setIsLoading(true);
+        const user = await signInWithFacebookCredential(response.accessToken);
+        setUser({ name: user.displayName, email: user.email, role: role });
+        alert('Logged in with Facebook successfully.');
+      } catch (error) {
+        setError(error.message || 'An error occurred during Facebook login');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setError('Facebook login failed');
     }
   };
 
@@ -112,9 +129,18 @@ function LoginForm({ setUser }) {
 
       <div className="text-center mt-4">
         <p className="text-[#EFEFED]">Or login with</p>
-        <button className="mt-2 p-2 bg-[#3b5998] text-white rounded">
-          Facebook
-        </button>
+        <FacebookLogin
+          appId="YOUR_FACEBOOK_APP_ID"
+          callback={responseFacebook}
+          render={renderProps => (
+            <button
+              onClick={renderProps.onClick}
+              className="mt-2 p-2 bg-[#3b5998] text-white rounded flex items-center justify-center w-full"
+            >
+              <span className="mr-2">f</span> Continue with Facebook
+            </button>
+          )}
+        />
       </div>
 
       <p className="text-center text-[#EFEFED] mt-4">

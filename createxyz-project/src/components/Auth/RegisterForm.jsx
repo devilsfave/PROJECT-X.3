@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db, signInWithFacebookCredential } from '../../firebase/config'; // Import signInWithFacebookCredential
-import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'; // Import Facebook Login
+import { auth, db, signInWithFacebookCredential } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
+import FacebookLogin from 'react-facebook-login';
 
 function RegisterForm({ setUser }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [licenseNumber, setLicenseNumber] = useState('');
-  const [specialization, setSpecialization] = useState('');
-  const [location, setLocation] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+    licenseNumber: '',
+    specialization: '',
+    location: '',
+  });
   const [role, setRole] = useState('patient');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    const { email, password, confirmPassword, fullName, licenseNumber, specialization, location } = formData;
 
     // Input validation
     if (!email || !password || !confirmPassword || !fullName) {
@@ -53,26 +61,17 @@ function RegisterForm({ setUser }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: fullName });
 
-      // Store user details based on role
-      if (role === 'doctor') {
-        await setDoc(doc(db, 'doctors', userCredential.user.uid), {
-          fullName,
-          email,
-          licenseNumber,
-          specialization,
-          location,
-          verified: false, // Initially set as not verified
-        });
-        alert('Doctor registered successfully. Verification is pending.');
-      } else {
-        await setDoc(doc(db, 'patients', userCredential.user.uid), {
-          fullName,
-          email,
-        });
-        alert('Patient registered successfully.');
-      }
+      const userData = {
+        fullName,
+        email,
+        role,
+        ...(role === 'doctor' && { licenseNumber, specialization, location, verified: false }),
+      };
 
-      setUser({ name: fullName, email: email, role: role });
+      await setDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', userCredential.user.uid), userData);
+
+      setUser({ ...userData, uid: userCredential.user.uid });
+      alert(`${role.charAt(0).toUpperCase() + role.slice(1)} registered successfully.${role === 'doctor' ? ' Verification is pending.' : ''}`);
     } catch (error) {
       console.error('Registration error:', error);
       setError(error.message || 'An error occurred during signup.');
@@ -117,32 +116,36 @@ function RegisterForm({ setUser }) {
 
       <input
         type="text"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
+        name="fullName"
+        value={formData.fullName}
+        onChange={handleChange}
         placeholder="Full Name"
         className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         required
       />
       <input
         type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
         placeholder="Email"
         className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         required
       />
       <input
         type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        name="password"
+        value={formData.password}
+        onChange={handleChange}
         placeholder="Password"
         className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         required
       />
       <input
         type="password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
+        name="confirmPassword"
+        value={formData.confirmPassword}
+        onChange={handleChange}
         placeholder="Confirm Password"
         className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         required
@@ -152,24 +155,27 @@ function RegisterForm({ setUser }) {
         <>
           <input
             type="text"
-            value={licenseNumber}
-            onChange={(e) => setLicenseNumber(e.target.value)}
+            name="licenseNumber"
+            value={formData.licenseNumber}
+            onChange={handleChange}
             placeholder="License Number"
             className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
             required
           />
           <input
             type="text"
-            value={specialization}
-            onChange={(e) => setSpecialization(e.target.value)}
+            name="specialization"
+            value={formData.specialization}
+            onChange={handleChange}
             placeholder="Specialization"
             className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
             required
           />
           <input
             type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
             placeholder="Location"
             className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
             required
@@ -179,9 +185,8 @@ function RegisterForm({ setUser }) {
 
       <ButtonStyling text="Register" type="submit" disabled={isLoading} />
       
-      {/* Facebook Login Button */}
       <FacebookLogin
-        appId="YOUR_FACEBOOK_APP_ID"
+        appId="538566685170693"
         callback={responseFacebook}
         render={renderProps => (
           <button

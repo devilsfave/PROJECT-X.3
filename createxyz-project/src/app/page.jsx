@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
-import ButtonStyling from "../components/button-styling";
+import ButtonStyling from "../components/ButtonStyling";
+
 
 function MainComponent() {
   const [user, setUser] = React.useState(null);
