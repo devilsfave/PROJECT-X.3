@@ -1,7 +1,14 @@
 "use client";
 import React from "react";
 import ButtonStyling from "../components/ButtonStyling";
-
+import AuthComponent from "../components/Auth/AuthComponent";
+import HomeComponent from "../components/Home/HomeComponent";
+import AnalysisComponent from "../components/Analysis/AnalysisComponent";
+import ResultsComponent from "../components/Analysis/ResultsComponent";
+import AppointmentsComponent from "../components/Appointments/AppointmentsComponent";
+import EducationComponent from "../components/Education/EducationComponent";
+import CameraComponent from "../components/Analysis/CameraComponent";
+import MobileMenu from "../components/MobileMenu";
 
 function MainComponent() {
   const [user, setUser] = React.useState(null);

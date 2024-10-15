@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth, signInWithFacebookCredential } from '../../firebase/config';
+import { auth, signInWithFacebookCredential } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
 import FacebookLogin from 'react-facebook-login';
 
