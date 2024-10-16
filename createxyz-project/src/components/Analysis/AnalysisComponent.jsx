@@ -1,30 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ButtonStyling from "../ButtonStyling";
-
-const classNames = ['nv', 'mel', 'bkl', 'bcc', 'akiec', 'vasc', 'df']; // Example class names
-
-// Function to generate random predictions
-const generateRandomPrediction = () => {
-  const randomIndex = Math.floor(Math.random() * classNames.length);
-  const predictions = Array(classNames.length).fill(0).map(() => Math.random());
-  const total = predictions.reduce((acc, curr) => acc + curr, 0);
-  return predictions.map(prob => (prob / total).toFixed(2)); // Normalize probabilities
-};
-
-const simulatePrediction = () => {
-  const randomProbabilities = generateRandomPrediction();
-  const predictedClassIndex = randomProbabilities.indexOf(Math.max(...randomProbabilities));
-  
-  const classProbabilities = {};
-  classNames.forEach((name, index) => {
-    classProbabilities[name] = (randomProbabilities[index] * 100).toFixed(2) + '%';
-  });
-
-  return {
-    predictedClass: classNames[predictedClassIndex],
-    probabilities: classProbabilities
-  };
-};
+import { predictImage } from '../../ml/modelLoader';
 
 function AnalysisComponent({ setAnalysisResult, setCurrentTab, setShowCamera }) {
   const [image, setImage] = useState(null);
@@ -41,15 +17,40 @@ function AnalysisComponent({ setAnalysisResult, setCurrentTab, setShowCamera }) 
     setError(null);
 
     try {
-      
-      const prediction = simulatePrediction();
-      setAnalysisResult(prediction); 
+      // Convert base64 image to ImageData
+      const img = new Image();
+      img.src = image;
+      await new Promise((resolve) => { img.onload = resolve; });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Use the predictImage function from modelLoader
+      const prediction = await predictImage(imageData);
+      setAnalysisResult(prediction);
       setCurrentTab('results');
     } catch (err) {
       console.error('Error analyzing image:', err);
       setError('An error occurred during image analysis. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setImage(e.target.result);
+      reader.onerror = (e) => {
+        console.error('Error reading file:', e);
+        setError('Failed to read the selected file. Please try again.');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -61,7 +62,7 @@ function AnalysisComponent({ setAnalysisResult, setCurrentTab, setShowCamera }) 
           <div className="flex flex-col items-center">
             <img src={image} alt="Uploaded" className="max-w-full h-auto mb-4" />
             <div className="flex space-x-4">
-              <ButtonStyling text="Retake" onClick={() => setImage(null)} />
+              <ButtonStyling text="Choose Different Image" onClick={() => setImage(null)} />
               <ButtonStyling text="Analyze" onClick={handleAnalyze} disabled={isLoading} />
             </div>
           </div>
@@ -70,14 +71,7 @@ function AnalysisComponent({ setAnalysisResult, setCurrentTab, setShowCamera }) 
             <input
               type="file"
               accept="image/*"
-              onChange={(event) => {
-                const file = event.target.files[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (e) => setImage(e.target.result);
-                  reader.readAsDataURL(file);
-                }
-              }}
+              onChange={handleImageUpload}
               className="hidden"
               id="imageUpload"
             />

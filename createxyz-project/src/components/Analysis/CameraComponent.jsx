@@ -1,27 +1,25 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ButtonStyling from "../ButtonStyling";
-import { loadModel, predictImage } from '../../ml/modelLoader';
+import { predictImage } from '../../ml/modelLoader';
 
 function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
   const [stream, setStream] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  useEffect(() => {
-    loadModel().catch(console.error);
-  }, []);
-
   const startCamera = useCallback(async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
+      setError('Failed to access camera. Please ensure you have given permission and try again.');
     }
   }, []);
 
@@ -34,9 +32,13 @@ function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
 
   const captureImage = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-      const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageDataUrl = canvas.toDataURL('image/jpeg');
       setCapturedImage(imageDataUrl);
       stopCamera();
     }
@@ -44,6 +46,7 @@ function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
 
   const retakePhoto = useCallback(() => {
     setCapturedImage(null);
+    setError(null);
     startCamera();
   }, [startCamera]);
 
@@ -51,22 +54,23 @@ function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
     if (!capturedImage) return;
   
     setIsLoading(true);
+    setError(null);
     try {
-      const imageData = canvasRef.current.getContext('2d').getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
+      const canvas = canvasRef.current;
+      const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
       const result = await predictImage(imageData);
       setAnalysisResult(result);
-      setCapturedImage(capturedImage); // Set the captured image
       setCurrentTab('results');
       setShowCamera(false);
     } catch (error) {
       console.error('Error processing image:', error);
-      alert('Failed to process image');
+      setError('Failed to process image. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  }, [capturedImage, setAnalysisResult, setCurrentTab, setShowCamera, setCapturedImage]);
+  }, [capturedImage, setAnalysisResult, setCurrentTab, setShowCamera]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     startCamera();
     return () => {
       stopCamera();
@@ -74,7 +78,7 @@ function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
   }, [startCamera, stopCamera]);
 
   return (
-    <div className="camera-component bg-[#0D111D] p-4 rounded-lg">
+    <div className="camera-component bg-[#0D111D] p-4 rounded-lg relative">
       {capturedImage ? (
         <div className="flex flex-col items-center">
           <img src={capturedImage} alt="Captured" className="max-w-full h-auto mb-4" />
@@ -96,10 +100,15 @@ function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
           <ButtonStyling text="Capture" onClick={captureImage} />
         </div>
       )}
-      <canvas ref={canvasRef} style={{ display: 'none' }} width={640} height={480} />
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#EFEFED]"></div>
+        </div>
+      )}
+      {error && (
+        <div className="mt-4 text-red-500 text-center">
+          {error}
         </div>
       )}
     </div>
