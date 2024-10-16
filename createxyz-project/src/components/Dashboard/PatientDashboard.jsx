@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../../firebase/config';
+import { db } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import AppointmentBooking from '../Appointment/AppointmentBooking';

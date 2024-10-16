@@ -1,9 +1,31 @@
-import * as tf from '@tensorflow/tfjs';
-import * as tflite from '@tensorflow/tfjs-tflite';
+let tflite;
+let tf;
+let model;
 
-let model = null;
+// Load TensorFlow.js and TFLite dynamically
+const loadTensorFlowModules = async () => {
+  if (typeof window === 'undefined') return; // Skip on server-side
+
+  // Import TensorFlow.js and TFLite modules
+  if (!tf) {
+    tf = await import('@tensorflow/tfjs');
+    await tf.ready(); // Wait for TensorFlow.js to be ready
+    console.log('TensorFlow.js is ready.');
+  }
+
+  if (!tflite) {
+    tflite = await import('@tensorflow/tfjs-tflite');
+  }
+};
 
 export const loadModel = async () => {
+  await loadTensorFlowModules(); // Ensure TensorFlow modules are loaded
+
+  if (typeof window === 'undefined') {
+    console.log('Cannot load model in server-side environment');
+    return; // Skip on server-side
+  }
+
   try {
     if (model) {
       console.log('Model already loaded, skipping initialization.');
@@ -11,8 +33,6 @@ export const loadModel = async () => {
     }
 
     console.log('Starting model loading process...');
-    await tf.ready();
-    console.log('TensorFlow.js is ready.');
 
     const modelPath = '/ml/model_unquant.tflite'; // Adjust the path as needed
     model = await tflite.loadTFLiteModel(modelPath);
@@ -32,7 +52,6 @@ export const loadModel = async () => {
 
 const preprocessImage = async (imageData) => {
   try {
-    // Convert the image data to a tensor
     const imageTensor = tf.browser.fromPixels(imageData)
       .resizeBilinear([224, 224])
       .expandDims(0)
@@ -46,9 +65,16 @@ const preprocessImage = async (imageData) => {
 };
 
 export const predictImage = async (imageData) => {
+  await loadTensorFlowModules(); // Ensure modules are loaded
+
+  if (typeof window === 'undefined') {
+    console.log('Cannot predict on server-side');
+    return null; // Skip on server-side
+  }
+
   try {
     if (!model) {
-      throw new Error('Model not loaded yet. Please wait.');
+      await loadModel(); // Load the model if it's not already loaded
     }
     const imageTensor = await preprocessImage(imageData);
     const outputTensor = await model.predict(imageTensor);

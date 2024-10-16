@@ -19,6 +19,7 @@ function MainComponent() {
   const [analysisResult, setAnalysisResult] = React.useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [showCamera, setShowCamera] = React.useState(false);
+  const [capturedImage, setCapturedImage] = React.useState(null);
 
   React.useEffect(() => {
     window.fbAsyncInit = function () {
@@ -63,7 +64,13 @@ function MainComponent() {
           />
         );
       case "results":
-        return <ResultsComponent analysisResult={analysisResult} />;
+        return (
+          <ResultsComponent 
+            analysisResult={analysisResult}
+            imageUri={capturedImage}
+            setCurrentTab={setCurrentTab}
+          />
+        );
       case "appointments":
         return <AppointmentsComponent />;
       case "education":
@@ -105,6 +112,7 @@ function MainComponent() {
           isOpen={mobileMenuOpen}
           setCurrentTab={setCurrentTab}
           setMobileMenuOpen={setMobileMenuOpen}
+          user={user} // Pass the user prop to MobileMenu
         />
       )}
 
@@ -124,6 +132,7 @@ function MainComponent() {
             setShowCamera={setShowCamera}
             setAnalysisResult={setAnalysisResult}
             setCurrentTab={setCurrentTab}
+            setCapturedImage={setCapturedImage}
           />
         ) : (
           renderTab()

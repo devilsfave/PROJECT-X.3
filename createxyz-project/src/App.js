@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase/config';
+import { auth } from './Firebase/config';
 import MainComponent from './components/MainComponent';
 import LoginForm from './components/LoginForm'; 
-import RegisterForm from './components/RegisterForm'; 
+import RegisterForm from './components/RegisterForm';
+import AdminPanel from './components/Admin/AdminPanel';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -29,7 +30,13 @@ function App() {
   return (
     <div>
       {user ? (
-        <MainComponent user={user} setUser={setUser} />
+        <>
+          {user.email && user.email === 'herbertyeboah123@gmail.com' ? (
+            <AdminPanel user={user} />
+          ) : (
+            <MainComponent user={user} setUser={setUser} />
+          )}
+        </>
       ) : (
         <div className="flex flex-col items-center justify-center h-screen">
           <LoginForm setUser={setUser} />

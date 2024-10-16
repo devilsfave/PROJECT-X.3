@@ -49,12 +49,13 @@ function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
 
   const processImage = useCallback(async () => {
     if (!capturedImage) return;
-
+  
     setIsLoading(true);
     try {
       const imageData = canvasRef.current.getContext('2d').getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
       const result = await predictImage(imageData);
       setAnalysisResult(result);
+      setCapturedImage(capturedImage); // Set the captured image
       setCurrentTab('results');
       setShowCamera(false);
     } catch (error) {
@@ -63,7 +64,7 @@ function CameraComponent({ setShowCamera, setAnalysisResult, setCurrentTab }) {
     } finally {
       setIsLoading(false);
     }
-  }, [capturedImage, setAnalysisResult, setCurrentTab, setShowCamera]);
+  }, [capturedImage, setAnalysisResult, setCurrentTab, setShowCamera, setCapturedImage]);
 
   React.useEffect(() => {
     startCamera();

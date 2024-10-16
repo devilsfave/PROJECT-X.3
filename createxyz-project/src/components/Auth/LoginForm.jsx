@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, signInWithFacebookCredential } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
-import FacebookLogin from 'react-facebook-login';
+import FacebookLogin from '@greatsumini/react-facebook-login';
 
-function LoginForm({ setUser }) {
+function LoginForm({ setUserWithRole }) {  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [role, setRole] = useState('patient');
+  const [role, setRole] = useState('patient');  // Role state
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const handleLogin = async (e) => {
@@ -26,8 +26,8 @@ function LoginForm({ setUser }) {
       setIsLoading(true);
       setError(null);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setUser({ name: userCredential.user.displayName, email: userCredential.user.email, role: role });
-      // Navigation to home page would be handled by the parent component
+      const userData = { name: userCredential.user.displayName, email: userCredential.user.email };
+      setUserWithRole(userData, role);  // Set user with role
     } catch (err) {
       setError(err.message || 'An error occurred during login.');
     } finally {
@@ -63,7 +63,7 @@ function LoginForm({ setUser }) {
       try {
         setIsLoading(true);
         const user = await signInWithFacebookCredential(response.accessToken);
-        setUser({ name: user.displayName, email: user.email, role: role });
+        setUserWithRole({ name: user.displayName, email: user.email }, role);  // Set user with role for Facebook login
         alert('Logged in with Facebook successfully.');
       } catch (error) {
         setError(error.message || 'An error occurred during Facebook login');

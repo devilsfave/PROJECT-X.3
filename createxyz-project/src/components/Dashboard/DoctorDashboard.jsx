@@ -1,4 +1,4 @@
-import { db } from '../../firebase/config';
+import { db } from '../../Firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import React, { useState, useEffect } from 'react';
 import ButtonStyling from '../ButtonStyling';

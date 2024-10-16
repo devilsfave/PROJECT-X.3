@@ -3,9 +3,9 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db, signInWithFacebookCredential } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
-import FacebookLogin from 'react-facebook-login';
+import FacebookLogin from '@greatsumini/react-facebook-login';
 
-function RegisterForm({ setUser }) {
+function RegisterForm({ setUserWithRole }) {  // Use setUserWithRole instead of setUser
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -68,9 +68,11 @@ function RegisterForm({ setUser }) {
         ...(role === 'doctor' && { licenseNumber, specialization, location, verified: false }),
       };
 
+      // Save user to Firestore based on role (either 'doctors' or 'patients' collection)
       await setDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', userCredential.user.uid), userData);
 
-      setUser({ ...userData, uid: userCredential.user.uid });
+      // Call setUserWithRole function
+      setUserWithRole({ ...userData, uid: userCredential.user.uid }, role);
       alert(`${role.charAt(0).toUpperCase() + role.slice(1)} registered successfully.${role === 'doctor' ? ' Verification is pending.' : ''}`);
     } catch (error) {
       console.error('Registration error:', error);
@@ -84,7 +86,7 @@ function RegisterForm({ setUser }) {
     if (response.accessToken) {
       try {
         const user = await signInWithFacebookCredential(response.accessToken);
-        setUser({ name: user.displayName, email: user.email, role: role });
+        setUserWithRole({ name: user.displayName, email: user.email }, role);  // Set user with role for Facebook login
         alert('Logged in with Facebook successfully.');
       } catch (error) {
         setError(error.message || 'An error occurred during Facebook login');
@@ -186,7 +188,7 @@ function RegisterForm({ setUser }) {
       <ButtonStyling text="Register" type="submit" disabled={isLoading} />
       
       <FacebookLogin
-        appId="538566685170693"
+        appId="YOUR_FACEBOOK_APP_ID"
         callback={responseFacebook}
         render={renderProps => (
           <button

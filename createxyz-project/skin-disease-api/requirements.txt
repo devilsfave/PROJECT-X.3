@@ -1,0 +1,6 @@
+Flask==2.0.1
+tflite-runtime==2.5.0
+Pillow==8.3.1
+numpy==1.21.1
+requests==2.26.0
+gunicorn==20.1.0

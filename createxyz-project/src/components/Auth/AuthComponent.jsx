@@ -8,6 +8,10 @@ function AuthComponent({ setUser, activeTab, setActiveTab }) {
     setActiveTab(activeTab === 'login' ? 'register' : 'login');
   };
 
+  const setUserWithRole = (userData, role) => {
+    setUser({ ...userData, role });
+  };
+
   return (
     <div className="bg-[#171B26] p-6 rounded-lg shadow-lg max-w-md mx-auto">
       <div className="flex justify-between mb-6">
@@ -23,9 +27,9 @@ function AuthComponent({ setUser, activeTab, setActiveTab }) {
         />
       </div>
       {activeTab === 'login' ? (
-        <LoginForm setUser={setUser} />
+        <LoginForm setUserWithRole={setUserWithRole} />
       ) : (
-        <RegisterForm setUser={setUser} />
+        <RegisterForm setUserWithRole={setUserWithRole} />
       )}
       <p className="mt-4 text-center text-[#EFEFED]">
         {activeTab === 'login' ? "Don't have an account?" : "Already have an account?"}

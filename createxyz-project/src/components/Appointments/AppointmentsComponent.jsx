@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { db } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
+import { useRouter } from 'next/router';
 
-function AppointmentBooking({ user, doctorId, doctorName }) {
+function AppointmentBooking({ user }) {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [appointments, setAppointments] = useState([]);
+  
+  // Use router to get doctorId and doctorName from the query parameters
+  const router = useRouter();
+  const { doctorId, doctorName } = router.query; // Fetching from URL parameters
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -36,7 +41,7 @@ function AppointmentBooking({ user, doctorId, doctorName }) {
 
     try {
       const appointmentData = {
-        doctorId,
+        doctorId,  // use doctorId from query
         userId: user.uid,
         date,
         time,
@@ -45,7 +50,6 @@ function AppointmentBooking({ user, doctorId, doctorName }) {
       await addDoc(collection(db, 'appointments'), appointmentData);
 
       alert(`Appointment booked with Dr. ${doctorName} on ${date} at ${time}.`);
-      // Optionally, refresh the appointments list or redirect the user
     } catch (error) {
       console.error('Error booking appointment:', error);
       alert('Failed to book appointment.');
@@ -65,7 +69,9 @@ function AppointmentBooking({ user, doctorId, doctorName }) {
 
   return (
     <div className="p-4 bg-[#171B26] rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-[#EFEFED]">Book Appointment with Dr. {doctorName}</h2>
+      <h2 className="text-2xl font-bold mb-4 text-[#EFEFED]">
+        Book Appointment with Dr. {doctorName ? doctorName : 'Select a Doctor'}
+      </h2>
       <input
         type="date"
         value={date}
@@ -94,3 +100,4 @@ function AppointmentBooking({ user, doctorId, doctorName }) {
 }
 
 export default AppointmentBooking;
+//
